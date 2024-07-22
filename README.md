@@ -1,5 +1,4 @@
-import cv2
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageFilter
 import numpy as np
 
 # Create an image with a red-black gradient background
@@ -25,32 +24,31 @@ text_y = (height - text_height) / 2
 
 # Apply the text with black outline
 outline_range = 5
-for x in range(-outline_range, outline_range+1):
-    for y in range(-outline_range, outline_range+1):
+for x in range(-outline_range, outline_range + 1):
+    for y in range(-outline_range, outline_range + 1):
         draw.text((text_x + x, text_y + y), text, font=font, fill="black")
 
 # Apply the text in white
 draw.text((text_x, text_y), text, font=font, fill="white")
 
-# Generate red, white, and black smoke effect
-smoke_overlay = np.zeros((height, width, 3), dtype=np.uint8)
-for i in range(100):
-    # Generate random smoke patterns
-    red_smoke = np.random.randint(0, 256, (height, width, 3), dtype=np.uint8) * [1, 0, 0]
-    white_smoke = np.random.randint(0, 256, (height, width, 3), dtype=np.uint8) * [1, 1, 1]
-    black_smoke = np.random.randint(0, 256, (height, width, 3), dtype=np.uint8) * [0, 0, 0]
+# Create a smoke effect overlay
+smoke_image = Image.new('RGB', (width, height), color=(0, 0, 0))
+smoke_draw = ImageDraw.Draw(smoke_image)
+for _ in range(100):
+    x0 = np.random.randint(0, width)
+    y0 = np.random.randint(0, height)
+    x1 = x0 + np.random.randint(50, 200)
+    y1 = y0 + np.random.randint(50, 200)
+    color = np.random.choice([(255, 0, 0), (255, 255, 255), (0, 0, 0)])
+    smoke_draw.ellipse([x0, y0, x1, y1], fill=color, outline=color)
 
-    # Blend the smoke patterns together
-    smoke_overlay = cv2.addWeighted(smoke_overlay, 0.9, red_smoke, 0.03, 0)
-    smoke_overlay = cv2.addWeighted(smoke_overlay, 0.9, white_smoke, 0.03, 0)
-    smoke_overlay = cv2.addWeighted(smoke_overlay, 0.9, black_smoke, 0.03, 0)
+smoke_image = smoke_image.filter(ImageFilter.GaussianBlur(50))
 
 # Blend the smoke overlay with the original image
-smoke_image = Image.blend(image, Image.fromarray(smoke_overlay, 'RGB'), alpha=0.5)
+final_image = Image.blend(image, smoke_image, alpha=0.3)
 
 # Save the final image
 output_path = "/mnt/data/V12_TEAM_image.png"
-smoke_image.save(output_path)
+final_image.save(output_path)
 
 output_path
-
