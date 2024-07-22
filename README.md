@@ -1,3 +1,4 @@
+import cv2
 from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 
@@ -34,17 +35,22 @@ draw.text((text_x, text_y), text, font=font, fill="white")
 # Generate red, white, and black smoke effect
 smoke_overlay = np.zeros((height, width, 3), dtype=np.uint8)
 for i in range(100):
-    smoke_overlay += np.random.randint(0, 256, (height, width, 3), dtype=np.uint8) * [1, 0, 0]
-    smoke_overlay += np.random.randint(0, 256, (height, width, 3), dtype=np.uint8) * [1, 1, 1]
-    smoke_overlay += np.random.randint(0, 256, (height, width, 3), dtype=np.uint8) * [0, 0, 0]
+    # Generate random smoke patterns
+    red_smoke = np.random.randint(0, 256, (height, width, 3), dtype=np.uint8) * [1, 0, 0]
+    white_smoke = np.random.randint(0, 256, (height, width, 3), dtype=np.uint8) * [1, 1, 1]
+    black_smoke = np.random.randint(0, 256, (height, width, 3), dtype=np.uint8) * [0, 0, 0]
+
+    # Blend the smoke patterns together
+    smoke_overlay = cv2.addWeighted(smoke_overlay, 0.9, red_smoke, 0.03, 0)
+    smoke_overlay = cv2.addWeighted(smoke_overlay, 0.9, white_smoke, 0.03, 0)
+    smoke_overlay = cv2.addWeighted(smoke_overlay, 0.9, black_smoke, 0.03, 0)
 
 # Blend the smoke overlay with the original image
-smoke_image = Image.blend(image, Image.fromarray(smoke_overlay, 'RGB'), alpha=0.3)
+smoke_image = Image.blend(image, Image.fromarray(smoke_overlay, 'RGB'), alpha=0.5)
 
 # Save the final image
 output_path = "/mnt/data/V12_TEAM_image.png"
 smoke_image.save(output_path)
 
 output_path
-
 
